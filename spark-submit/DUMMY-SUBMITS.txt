@@ -1,0 +1,8 @@
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --driver-memory 256m --deploy-mode cluster --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+
+
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --deploy-mode cluster --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+
+
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:7077 --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+ 
