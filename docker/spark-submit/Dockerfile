@@ -1,4 +1,4 @@
-FROM spark-base:2.3.1
+FROM neelpatel21/spark-base:2.3.1
 
 COPY spark-submit.sh /
 
