@@ -1,4 +1,6 @@
-FROM spark-base:2.3.1
+ARG FROM_IMAGE
+
+FROM ${FROM_IMAGE}
 
 COPY spark-submit.sh /
 
