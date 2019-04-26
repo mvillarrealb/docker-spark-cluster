@@ -12,8 +12,8 @@ services:
       spark-network:
         ipv4_address: 10.5.0.2
     volumes:
-       - /mnt/spark-apps:/opt/spark-apps
-       - /mnt/spark-data:/opt/spark-data
+       - ${HOST_APP_FOLDER}:/opt/spark-apps
+       - ${HOST_DATA_FOLDER}:/opt/spark-data
     environment:
       - "SPARK_LOCAL_IP=spark-master"
   spark-worker-1:
@@ -31,8 +31,8 @@ services:
       spark-network:
         ipv4_address: 10.5.0.3
     volumes:
-       - /mnt/spark-apps:/opt/spark-apps
-       - /mnt/spark-data:/opt/spark-data
+       - ${HOST_APP_FOLDER}:/opt/spark-apps
+       - ${HOST_DATA_FOLDER}:/opt/spark-data
   spark-worker-2:
     image: spark-worker:${SPARK_VERSION}
     container_name: spark-worker-2
@@ -48,8 +48,8 @@ services:
       spark-network:
         ipv4_address: 10.5.0.4
     volumes:
-       - /mnt/spark-apps:/opt/spark-apps
-       - /mnt/spark-data:/opt/spark-data
+       - ${HOST_APP_FOLDER}:/opt/spark-apps
+       - ${HOST_DATA_FOLDER}:/opt/spark-data
   spark-worker-3:
     image: spark-worker:${SPARK_VERSION}
     container_name: spark-worker-3
@@ -65,8 +65,8 @@ services:
       spark-network:
         ipv4_address: 10.5.0.5
     volumes:
-       - /mnt/spark-apps:/opt/spark-apps
-       - /mnt/spark-data:/opt/spark-data
+       - ${HOST_APP_FOLDER}:/opt/spark-apps
+       - ${HOST_DATA_FOLDER}:/opt/spark-data
 networks:
   spark-network:
     driver: bridge
