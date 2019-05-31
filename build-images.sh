@@ -2,7 +2,9 @@
 
 set -e
 
-docker build -t spark-base:2.3.1 ./docker/base
-docker build -t spark-master:2.3.1 ./docker/spark-master
-docker build -t spark-worker:2.3.1 ./docker/spark-worker
-docker build -t spark-submit:2.3.1 ./docker/spark-submit
+source ./.env
+
+docker build -t spark-base:${SPARK_VERSION} ./docker/base --build-arg SPARK_VERSION=${SPARK_VERSION}
+docker build -t spark-master:${SPARK_VERSION} ./docker/spark-master --build-arg FROM_IMAGE=spark-base:${SPARK_VERSION}
+docker build -t spark-worker:${SPARK_VERSION} ./docker/spark-worker --build-arg FROM_IMAGE=spark-base:${SPARK_VERSION}
+docker build -t spark-submit:${SPARK_VERSION} ./docker/spark-submit --build-arg FROM_IMAGE=spark-base:${SPARK_VERSION}
