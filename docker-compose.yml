@@ -15,7 +15,7 @@ services:
        - ${HOST_APP_FOLDER}:/opt/spark-apps
        - ${HOST_DATA_FOLDER}:/opt/spark-data
     environment:
-      - "SPARK_LOCAL_IP=spark-master"
+      - "SPARK_PUBLIC_DNS=${HOST_NAME}"
   spark-worker-1:
     image: spark-worker:${SPARK_VERSION}
     container_name: spark-worker-1
@@ -26,7 +26,8 @@ services:
       - "8081:8081"
     env_file: ./env/spark-worker.sh
     environment:
-      - "SPARK_LOCAL_IP=spark-worker-1"
+      - "SPARK_PUBLIC_DNS=${HOST_NAME}"
+      - "SPARK_WORKER_WEBUI_PORT=8081"
     networks: 
       spark-network:
         ipv4_address: 10.5.0.3
@@ -40,10 +41,11 @@ services:
     depends_on:
       - spark-master
     ports:
-      - "8082:8081"
+      - "8082:8082"
     env_file: ./env/spark-worker.sh
     environment:
-      - "SPARK_LOCAL_IP=spark-worker-2"
+      - "SPARK_PUBLIC_DNS=${HOST_NAME}"
+      - "SPARK_WORKER_WEBUI_PORT=8082"
     networks: 
       spark-network:
         ipv4_address: 10.5.0.4
@@ -57,10 +59,11 @@ services:
     depends_on:
       - spark-master
     ports:
-      - "8083:8081"
+      - "8083:8083"
     env_file: ./env/spark-worker.sh
     environment:
-      - "SPARK_LOCAL_IP=spark-worker-3"
+      - "SPARK_PUBLIC_DNS=${HOST_NAME}"
+      - "SPARK_WORKER_WEBUI_PORT=8083"
     networks: 
       spark-network:
         ipv4_address: 10.5.0.5
