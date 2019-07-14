@@ -51,7 +51,7 @@ This will create the following docker images:
 The final step to create your test cluster will be to run the compose file:
 
 ```sh
-docker-compose up
+docker-compose up --scale spark-worker=3
 ```
 
 ## Validate your cluster
