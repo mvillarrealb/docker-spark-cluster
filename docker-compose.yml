@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   spark-master:
-    image: spydernaz/spark-master:latest
+    image: spark-master:latest
     ports:
       - "9090:8080"
       - "7077:7077"
@@ -11,7 +11,7 @@ services:
     environment:
       - "SPARK_LOCAL_IP=spark-master"
   spark-worker:
-    image: spydernaz/spark-worker:latest
+    image: spark-worker:latest
     depends_on:
       - spark-master
     environment:
@@ -23,3 +23,5 @@ services:
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
+    ports:
+      - "9091:8081" 

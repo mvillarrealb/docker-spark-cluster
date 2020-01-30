@@ -1,6 +1,6 @@
  #!/bin/bash
  
-/spark/bin/spark-submit \
+$SPARK_HOME/bin/spark-submit \
 --class ${SPARK_APPLICATION_MAIN_CLASS} \
 --master ${SPARK_MASTER_URL} \
 --deploy-mode cluster \
