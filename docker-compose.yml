@@ -24,4 +24,4 @@ services:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
     ports:
-      - "9091:8081" 
+      - "8081" 
