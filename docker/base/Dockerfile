@@ -1,57 +1,34 @@
-FROM openjdk:8u212-b04-jdk-stretch
-LABEL author="Nathaniel Vala" email="nathanielvala@hotmail.com"
-LABEL version="0.2"
+FROM oraclelinux:8-slim
+
+ARG JAVA_VERSION=8.0.232-open
+ARG SCALA_VERSION=2.12.10
+ARG SBT_VERSION=1.3.7
+ARG SPARK_VERSION=2.4.4
+ARG HADOOP_VERSION=2.7
 
 ENV DAEMON_RUN=true
-ENV SPARK_VERSION=2.4.3
-ENV HADOOP_VERSION=2.7
-ENV SCALA_VERSION=2.12.4
-ENV SCALA_HOME=/usr/share/scala
-ENV SPARK_HOME=/spark
+ENV PYTHONHASHSEED=1
+ENV SDKMAN_DIR=/usr/local/sdkman
+ENV JAVA_HOME=${SDKMAN_DIR}/candidates/java/current/
+ENV SCALA_HOME=${SDKMAN_DIR}/candidates/scala/current/
+ENV SBT_HOME=${SDKMAN_DIR}/candidates/sbt/current/
+ENV SPARK_HOME=/opt/spark
 
+RUN touch /etc/dnf/dnf.conf && microdnf update -y
+RUN microdnf install bash curl ca-certificates unzip zip tar gzip bzip2 which findutils python3 python3-pip -y && microdnf clean all -y
+RUN curl -s "https://get.sdkman.io" | bash
+RUN set -x \
+    && echo "sdkman_auto_answer=true" > $SDKMAN_DIR/etc/config \
+    && echo "sdkman_auto_selfupdate=false" >> $SDKMAN_DIR/etc/config \
+    && echo "sdkman_insecure_ssl=false" >> $SDKMAN_DIR/etc/config
+RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && \
+    sdk update && sdk upgrade && sdk selfupdate && \
+    sdk install java ${JAVA_VERSION} && sdk default java ${JAVA_VERSION} && \
+    sdk install scala ${SCALA_VERSION} && sdk default scala ${SCALA_VERSION} && \
+    sdk install sbt ${SBT_VERSION} && sdk default sbt ${SBT_VERSION} && \
+    sdk flush archives && sdk flush temp && sdk flush broadcast"
+RUN pip3 --no-cache-dir install matplotlib pandas simpy numpy scipy
+RUN curl -o /tmp/spark.tgz https://www-us.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && tar -xvzf /tmp/spark.tgz --one-top-level=spark --strip-components 1 -C /opt/ && rm -f /tmp/spark.tgz
+RUN alternatives --set python /usr/bin/python3
 
-RUN apt-get update && apt-get install -y curl vim wget software-properties-common ssh net-tools ca-certificates jq
-
-#     apt update && apt -y upgrade \
-#     apt install -y wget ca-certificates && \
-#     apt install -y curl bash jq && \
-RUN cd "/tmp" && \
-    wget --no-verbose "https://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz" && \
-    tar xzf "scala-${SCALA_VERSION}.tgz" && \
-    mkdir "${SCALA_HOME}" && \
-    rm "/tmp/scala-${SCALA_VERSION}/bin/"*.bat && \
-    mv "/tmp/scala-${SCALA_VERSION}/bin" "/tmp/scala-${SCALA_VERSION}/lib" "${SCALA_HOME}" && \
-    ln -s "${SCALA_HOME}/bin/"* "/usr/bin/" && \
-    rm -rf "/tmp/"*
-
-
-# RUN apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
-#     apk add --no-cache bash curl jq && \
-#     cd "/tmp" && \
-#     wget --no-verbose "https://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz" && \
-#     tar xzf "scala-${SCALA_VERSION}.tgz" && \
-#     mkdir "${SCALA_HOME}" && \
-#     rm "/tmp/scala-${SCALA_VERSION}/bin/"*.bat && \
-#     mv "/tmp/scala-${SCALA_VERSION}/bin" "/tmp/scala-${SCALA_VERSION}/lib" "${SCALA_HOME}" && \
-#     ln -s "${SCALA_HOME}/bin/"* "/usr/bin/" && \
-#     apk del .build-dependencies && \
-#     rm -rf "/tmp/"*
-
-
-# Add Dependencies for PySpark
-RUN apt-get install -y python3 python3-pip python3-numpy python3-matplotlib python3-scipy python3-pandas python3-simpy
-RUN update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 1
-
-
-#Scala instalation
-RUN export PATH="/usr/local/sbt/bin:$PATH" &&  apt update && apt install ca-certificates wget tar && mkdir -p "/usr/local/sbt" && wget -qO - --no-check-certificate "https://github.com/sbt/sbt/releases/download/v1.2.8/sbt-1.2.8.tgz" | tar xz -C /usr/local/sbt --strip-components=1 && sbt sbtVersion
-
-RUN wget --no-verbose http://apache.mirror.iphh.net/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && tar -xvzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
-      && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} spark \
-      && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
-
-
-
-# Fix the value of PYTHONHASHSEED
-# Note: this is needed when you use Python 3.3 or greater
-ENV PYTHONHASHSEED 1
+WORKDIR ${SPARK_HOME}
