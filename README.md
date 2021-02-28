@@ -211,8 +211,21 @@ Running Spark using the REST application submission protocol.
 
 # Why a standalone cluster?
 
-* This is intended to be used for test purposses, basically a way of running distributed spark apps on your laptop or desktop.
+* This is intended to be used for test purposes, basically a way of running distributed spark apps on your laptop or desktop.
 
 * Right now I don't have enough resources to make a Yarn, Mesos or Kubernetes based cluster :(.
 
 * This will be useful to use CI/CD pipelines for your spark apps(A really difficult and hot topic)
+
+# Steps to connect and use a pyspark shell interactively
+
+* Follow the steps to run the docker-compose file. You can scale this down if needed to 1 worker. 
+
+```bash
+docker-compose up --scale spark-worker=1
+docker exec -it docker-spark-cluster_spark-worker_1 bash
+apt update
+apt install python3-pip
+pip3 install pyspark
+pyspark
+```
