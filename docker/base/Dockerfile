@@ -3,7 +3,7 @@ LABEL author="Nathaniel Vala" email="nathanielvala@hotmail.com"
 LABEL version="0.2"
 
 ENV DAEMON_RUN=true
-ENV SPARK_VERSION=2.4.3
+ENV SPARK_VERSION=2.4.7
 ENV HADOOP_VERSION=2.7
 ENV SCALA_VERSION=2.12.4
 ENV SCALA_HOME=/usr/share/scala
