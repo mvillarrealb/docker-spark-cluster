@@ -1,4 +1,4 @@
-# Spark Cluster with Docker & docker-compose
+# Spark Cluster with Docker & docker-compose(2021 ver.)
 
 # General
 
@@ -6,12 +6,12 @@ A simple spark standalone cluster for your testing environment purposses. A *doc
 
 The Docker compose will create the following containers:
 
-container|Ip address
+container|Exposed ports
 ---|---
-spark-master|10.5.0.2
-spark-worker-1|10.5.0.3
-spark-worker-2|10.5.0.4
-spark-worker-3|10.5.0.5
+spark-master|9090 7077
+spark-worker-1|9091
+spark-worker-2|9092
+demo-database|5432
 
 # Installation
 
@@ -23,35 +23,19 @@ The following steps will make you run your spark cluster's containers.
 
 * Docker compose  installed
 
-* A spark Application Jar to play with(Optional)
+## Build the image
 
-## Build the images
-
-The first step to deploy the cluster will be the build of the custom images, these builds can be performed with the *build-images.sh* script. 
-
-The executions is as simple as the following steps:
 
 ```sh
-chmod +x build-images.sh
-./build-images.sh
+docker build -t cluster-apache-spark:3.0.2 .
 ```
-
-This will create the following docker images:
-
-* spark-base:2.3.1: A base image based on java:alpine-jdk-8 wich ships scala, python3 and spark 2.3.1
-
-* spark-master:2.3.1: A image based on the previously created spark image, used to create a spark master containers.
-
-* spark-worker:2.3.1: A image based on the previously created spark image, used to create spark worker containers.
-
-* spark-submit:2.3.1: A image based on the previously created spark image, used to create spark submit containers(run, deliver driver and die gracefully).
 
 ## Run the docker-compose
 
 The final step to create your test cluster will be to run the compose file:
 
 ```sh
-docker-compose up --scale spark-worker=3
+docker-compose up -d
 ```
 
 ## Validate your cluster
@@ -60,27 +44,22 @@ Just validate your cluster accesing the spark UI on each worker & master URL.
 
 ### Spark Master
 
-http://10.5.0.2:8080/
+http://localhost:9090/
 
 ![alt text](docs/spark-master.png "Spark master UI")
 
 ### Spark Worker 1
 
-http://10.5.0.3:8081/
+http://localhost:9091/
 
 ![alt text](docs/spark-worker-1.png "Spark worker 1 UI")
 
 ### Spark Worker 2
 
-http://10.5.0.4:8081/
+http://localhost:9092/
 
 ![alt text](docs/spark-worker-2.png "Spark worker 2 UI")
 
-### Spark Worker 3
-
-http://10.5.0.5:8081/
-
-![alt text](docs/spark-worker-3.png "Spark worker 3 UI")
 
 # Resource Allocation 
 
@@ -102,8 +81,8 @@ To make app running easier I've shipped two volume mounts described in the follo
 
 Host Mount|Container Mount|Purposse
 ---|---|---
-/mnt/spark-apps|/opt/spark-apps|Used to make available your app's jars on all workers & master
-/mnt/spark-data|/opt/spark-data| Used to make available your app's data on all workers & master
+apps|/opt/spark-apps|Used to make available your app's jars on all workers & master
+data|/opt/spark-data| Used to make available your app's data on all workers & master
 
 This is basically a dummy DFS created from docker Volumes...(maybe not...)
 
@@ -111,54 +90,12 @@ This is basically a dummy DFS created from docker Volumes...(maybe not...)
 
 Now let`s make a **wild spark submit** to validate the distributed nature of our new toy following these steps:
 
-## Create a Scala spark app
-
-The first thing you need to do is to make a spark application. Our spark-submit image is designed to run scala code (soon will ship pyspark support guess I was just lazy to do so..).
-
-In my case I am using an app called  [crimes-app](https://). You can make or use your own scala app, I 've just used this one because I had it at hand.
+## Run the example
 
 
-## Ship your jar & dependencies on the Workers and Master
-
-A necesary step to make a **spark-submit** is to copy your application bundle into all workers, also any configuration file or input file you need.
-
-Luckily for us we are using docker volumes so, you just have to copy your app and configs into /mnt/spark-apps, and your input files into /mnt/spark-files.
-
-```bash
-#Copy spark application into all workers's app folder
-cp /home/workspace/crimes-app/build/libs/crimes-app.jar /mnt/spark-apps
-
-#Copy spark application configs into all workers's app folder
-cp -r /home/workspace/crimes-app/config /mnt/spark-apps
-
-# Copy the file to be processed to all workers's data folder
-cp /home/Crimes_-_2001_to_present.csv /mnt/spark-files
-```
-
-## Check the successful copy of the data and app jar (Optional)
-
-This is not a necessary step, just if you are curious you can check if your app code and files are in place before running the spark-submit.
-
-```sh
-# Worker 1 Validations
-docker exec -ti spark-worker-1 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-1 ls -l /opt/spark-data
-
-# Worker 2 Validations
-docker exec -ti spark-worker-2 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-2 ls -l /opt/spark-data
-
-# Worker 3 Validations
-docker exec -ti spark-worker-3 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-3 ls -l /opt/spark-data
-```
-After running one of this commands you have to see your app's jar and files.
 
 
-## Use docker spark-submit
+## Run the example with the spark-submit 
 
 ```bash
 #Creating some variables to make the docker run command more readable
@@ -229,3 +166,30 @@ apt install python3-pip
 pip3 install pyspark
 pyspark
 ```
+
+/opt/spark/bin/spark-submit --jars /opt/spark-apps/postgresql-42.2.22.jar --master spark://spark-master:7077 --total-executor-cores 1 /opt/spark-apps/main.py
+
+
+#!/bin/bash
+SPARK_APPLICATION_JAR_LOCATION="/opt/spark-apps/crimes-app.jar"
+SPARK_APPLICATION_MAIN_CLASS="org.mvb.applications.CrimesApp"
+SPARK_SUBMIT_ARGS="--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf'"
+
+docker run --network docker-spark-cluster_spark-network -v /mnt/spark-apps:/opt/spark-apps --env SPARK_APPLICATION_JAR_LOCATION=$SPARK_APPLICATION_JAR_LOCATION --env SPARK_APPLICATION_MAIN_CLASS=$SPARK_APPLICATION_MAIN_CLASS spark-submit:2.3.1
+
+
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --driver-memory 256m --deploy-mode cluster --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+
+
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --deploy-mode cluster --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+
+
+./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:7077 --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
+ 
+
+ docker build -t cluster-apache-spark:3.0.2 .
+
+
+
+
+/opt/spark/bin/spark-submit --class mta.processing.MTAStatisticsApp --master spark://spark-master:7077 --deploy-mode cluster --jars /opt/spark-apps/postgresql-42.2.22.jar --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' /opt/spark-apps/mta-processing.jar

@@ -1,7 +1,7 @@
-version: "3.7"
+version: "3.3"
 services:
   spark-master:
-    image: spydernaz/spark-master:latest
+    image: cluster-apache-spark:3.0.2
     ports:
       - "9090:8080"
       - "7077:7077"
@@ -9,9 +9,12 @@ services:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
     environment:
-      - "SPARK_LOCAL_IP=spark-master"
-  spark-worker:
-    image: spydernaz/spark-worker:latest
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_WORKLOAD=master
+  spark-worker-a:
+    image: cluster-apache-spark:3.0.2
+    ports:
+      - "9091:8080"
     depends_on:
       - spark-master
     environment:
@@ -20,6 +23,30 @@ services:
       - SPARK_WORKER_MEMORY=1G
       - SPARK_DRIVER_MEMORY=128m
       - SPARK_EXECUTOR_MEMORY=256m
+      - SPARK_WORKLOAD=worker
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
+  spark-worker-b:
+    image: cluster-apache-spark:3.0.2
+    ports:
+      - "9092:8080"
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=128m
+      - SPARK_EXECUTOR_MEMORY=256m
+      - SPARK_WORKLOAD=worker
+    volumes:
+        - ./apps:/opt/spark-apps
+        - ./data:/opt/spark-data
+  demo-database:
+    image: postgres:11.7-alpine
+    ports: 
+      - "5432:5432"
+    environment: 
+      - POSTGRES_PASSWORD=casa1234
+
