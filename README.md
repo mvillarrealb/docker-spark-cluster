@@ -1,4 +1,4 @@
-# Spark Cluster with Docker & docker-compose
+# Spark Cluster with Docker & docker-compose(2021 ver.)
 
 # General
 
@@ -6,12 +6,12 @@ A simple spark standalone cluster for your testing environment purposses. A *doc
 
 The Docker compose will create the following containers:
 
-container|Ip address
+container|Exposed ports
 ---|---
-spark-master|10.5.0.2
-spark-worker-1|10.5.0.3
-spark-worker-2|10.5.0.4
-spark-worker-3|10.5.0.5
+spark-master|9090 7077
+spark-worker-1|9091
+spark-worker-2|9092
+demo-database|5432
 
 # Installation
 
@@ -23,35 +23,19 @@ The following steps will make you run your spark cluster's containers.
 
 * Docker compose  installed
 
-* A spark Application Jar to play with(Optional)
+## Build the image
 
-## Build the images
-
-The first step to deploy the cluster will be the build of the custom images, these builds can be performed with the *build-images.sh* script. 
-
-The executions is as simple as the following steps:
 
 ```sh
-chmod +x build-images.sh
-./build-images.sh
+docker build -t cluster-apache-spark:3.0.2 .
 ```
-
-This will create the following docker images:
-
-* spark-base:2.3.1: A base image based on java:alpine-jdk-8 wich ships scala, python3 and spark 2.3.1
-
-* spark-master:2.3.1: A image based on the previously created spark image, used to create a spark master containers.
-
-* spark-worker:2.3.1: A image based on the previously created spark image, used to create spark worker containers.
-
-* spark-submit:2.3.1: A image based on the previously created spark image, used to create spark submit containers(run, deliver driver and die gracefully).
 
 ## Run the docker-compose
 
 The final step to create your test cluster will be to run the compose file:
 
 ```sh
-docker-compose up --scale spark-worker=3
+docker-compose up -d
 ```
 
 ## Validate your cluster
@@ -60,27 +44,22 @@ Just validate your cluster accesing the spark UI on each worker & master URL.
 
 ### Spark Master
 
-http://10.5.0.2:8080/
+http://localhost:9090/
 
 ![alt text](docs/spark-master.png "Spark master UI")
 
 ### Spark Worker 1
 
-http://10.5.0.3:8081/
+http://localhost:9091/
 
 ![alt text](docs/spark-worker-1.png "Spark worker 1 UI")
 
 ### Spark Worker 2
 
-http://10.5.0.4:8081/
+http://localhost:9092/
 
 ![alt text](docs/spark-worker-2.png "Spark worker 2 UI")
 
-### Spark Worker 3
-
-http://10.5.0.5:8081/
-
-![alt text](docs/spark-worker-3.png "Spark worker 3 UI")
 
 # Resource Allocation 
 
@@ -102,110 +81,77 @@ To make app running easier I've shipped two volume mounts described in the follo
 
 Host Mount|Container Mount|Purposse
 ---|---|---
-/mnt/spark-apps|/opt/spark-apps|Used to make available your app's jars on all workers & master
-/mnt/spark-data|/opt/spark-data| Used to make available your app's data on all workers & master
+apps|/opt/spark-apps|Used to make available your app's jars on all workers & master
+data|/opt/spark-data| Used to make available your app's data on all workers & master
 
 This is basically a dummy DFS created from docker Volumes...(maybe not...)
 
-# Run a sample application
-
-Now let`s make a **wild spark submit** to validate the distributed nature of our new toy following these steps:
-
-## Create a Scala spark app
-
-The first thing you need to do is to make a spark application. Our spark-submit image is designed to run scala code (soon will ship pyspark support guess I was just lazy to do so..).
-
-In my case I am using an app called  [crimes-app](https://). You can make or use your own scala app, I 've just used this one because I had it at hand.
+# Run Sample applications
 
 
-## Ship your jar & dependencies on the Workers and Master
+## NY Bus Stops Data [Pyspark]
 
-A necesary step to make a **spark-submit** is to copy your application bundle into all workers, also any configuration file or input file you need.
+This programs just loads archived data from [MTA Bus Time](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html) and apply basic filters using spark sql, the result are persisted into a postgresql table.
 
-Luckily for us we are using docker volumes so, you just have to copy your app and configs into /mnt/spark-apps, and your input files into /mnt/spark-files.
+The loaded table will contain the following structure:
 
-```bash
-#Copy spark application into all workers's app folder
-cp /home/workspace/crimes-app/build/libs/crimes-app.jar /mnt/spark-apps
+latitude|longitude|time_received|vehicle_id|distance_along_trip|inferred_direction_id|inferred_phase|inferred_route_id|inferred_trip_id|next_scheduled_stop_distance|next_scheduled_stop_id|report_hour|report_date
+---|---|---|---|---|---|---|---|---|---|---|---|---
+40.668602|-73.986697|2014-08-01 04:00:01|469|4135.34710710144|1|IN_PROGRESS|MTA NYCT_B63|MTA NYCT_JG_C4-Weekday-141500_B63_123|2.63183804205619|MTA_305423|2014-08-01 04:00:00|2014-08-01
 
-#Copy spark application configs into all workers's app folder
-cp -r /home/workspace/crimes-app/config /mnt/spark-apps
-
-# Copy the file to be processed to all workers's data folder
-cp /home/Crimes_-_2001_to_present.csv /mnt/spark-files
-```
-
-## Check the successful copy of the data and app jar (Optional)
-
-This is not a necessary step, just if you are curious you can check if your app code and files are in place before running the spark-submit.
+To submit the app connect to one of the workers or the master and execute:
 
 ```sh
-# Worker 1 Validations
-docker exec -ti spark-worker-1 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-1 ls -l /opt/spark-data
-
-# Worker 2 Validations
-docker exec -ti spark-worker-2 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-2 ls -l /opt/spark-data
-
-# Worker 3 Validations
-docker exec -ti spark-worker-3 ls -l /opt/spark-apps
-
-docker exec -ti spark-worker-3 ls -l /opt/spark-data
-```
-After running one of this commands you have to see your app's jar and files.
-
-
-## Use docker spark-submit
-
-```bash
-#Creating some variables to make the docker run command more readable
-#App jar environment used by the spark-submit image
-SPARK_APPLICATION_JAR_LOCATION="/opt/spark-apps/crimes-app.jar"
-#App main class environment used by the spark-submit image
-SPARK_APPLICATION_MAIN_CLASS="org.mvb.applications.CrimesApp"
-#Extra submit args used by the spark-submit image
-SPARK_SUBMIT_ARGS="--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf'"
-
-#We have to use the same network as the spark cluster(internally the image resolves spark master as spark://spark-master:7077)
-docker run --network docker-spark-cluster_spark-network \
--v /mnt/spark-apps:/opt/spark-apps \
---env SPARK_APPLICATION_JAR_LOCATION=$SPARK_APPLICATION_JAR_LOCATION \
---env SPARK_APPLICATION_MAIN_CLASS=$SPARK_APPLICATION_MAIN_CLASS \
-spark-submit:2.3.1
-
+/opt/spark/bin/spark-submit --master spark://spark-master:7077 \
+--jars /opt/spark-apps/postgresql-42.2.22.jar \
+--driver-memory 1G \
+--executor-memory 1G \
+/opt/spark-apps/main.py
 ```
 
-After running this you will see an output pretty much like this:
+![alt text](./articles/images/pyspark-demo.png "Spark UI with pyspark program running")
 
-```bash
-Running Spark using the REST application submission protocol.
-2018-09-23 15:17:52 INFO  RestSubmissionClient:54 - Submitting a request to launch an application in spark://spark-master:6066.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Submission successfully created as driver-20180923151753-0000. Polling submission state...
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Submitting a request for the status of submission driver-20180923151753-0000 in spark://spark-master:6066.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - State of driver driver-20180923151753-0000 is now RUNNING.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Driver is running on worker worker-20180923151711-10.5.0.4-45381 at 10.5.0.4:45381.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Server responded with CreateSubmissionResponse:
-{
-  "action" : "CreateSubmissionResponse",
-  "message" : "Driver successfully submitted as driver-20180923151753-0000",
-  "serverSparkVersion" : "2.3.1",
-  "submissionId" : "driver-20180923151753-0000",
-  "success" : true
-}
+## MTA Bus Analytics[Scala]
+
+This program takes the archived data from [MTA Bus Time](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html) and make some aggregations on it, the calculated results are persisted on postgresql tables.
+
+Each persisted table correspond to a particullar aggregation:
+
+Table|Aggregation
+---|---
+day_summary|A summary of vehicles reporting, stops visited, average speed and distance traveled(all vehicles)
+speed_excesses|Speed excesses calculated in a 5 minute window
+average_speed|Average speed by vehicle
+distance_traveled|Total Distance traveled by vehicle
+
+
+To submit the app connect to one of the workers or the master and execute:
+
+```sh
+/opt/spark/bin/spark-submit --deploy-mode cluster \
+--master spark://spark-master:7077 \
+--total-executor-cores 1 \
+--class mta.processing.MTAStatisticsApp \
+--driver-memory 1G \
+--executor-memory 1G \
+--jars /opt/spark-apps/postgresql-42.2.22.jar \
+--conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' \
+--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' \
+/opt/spark-apps/mta-processing.jar
 ```
 
-# Summary (What have I done :O?)
+You will notice on the spark-ui a driver program and executor program running(In scala we can use deploy-mode cluster)
 
-* We compiled the necessary docker images to run spark master and worker containers.
+![alt text](./articles/images/stats-app.png "Spark UI with scala program running")
 
-* We created a spark standalone cluster using 3 worker nodes and 1 master node using docker && docker-compose.
 
-* Copied the resources necessary to run a sample application.
+# Summary
 
-* Submitted an application to the cluster using a **spark-submit** docker image.
+* We compiled the necessary docker image to run spark master and worker containers.
+
+* We created a spark standalone cluster using 2 worker nodes and 1 master node using docker && docker-compose.
+
+* Copied the resources necessary to run demo applications.
 
 * We ran a distributed application at home(just need enough cpu cores and RAM to do so).
 
@@ -213,15 +159,13 @@ Running Spark using the REST application submission protocol.
 
 * This is intended to be used for test purposes, basically a way of running distributed spark apps on your laptop or desktop.
 
-* Right now I don't have enough resources to make a Yarn, Mesos or Kubernetes based cluster :(.
-
 * This will be useful to use CI/CD pipelines for your spark apps(A really difficult and hot topic)
 
 # Steps to connect and use a pyspark shell interactively
 
 * Follow the steps to run the docker-compose file. You can scale this down if needed to 1 worker. 
 
-```bash
+```sh
 docker-compose up --scale spark-worker=1
 docker exec -it docker-spark-cluster_spark-worker_1 bash
 apt update
@@ -229,3 +173,9 @@ apt install python3-pip
 pip3 install pyspark
 pyspark
 ```
+
+# What's left to do?
+
+* Right now to run applications in deploy-mode cluster is necessary to specify arbitrary driver port.
+
+* The spark submit entry in the start-spark.sh is unimplemented, the submit used in the demos can be triggered from any worker
