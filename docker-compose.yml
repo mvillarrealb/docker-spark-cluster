@@ -15,15 +15,17 @@ services:
     image: cluster-apache-spark:3.0.2
     ports:
       - "9091:8080"
+      - "7000:7000"
     depends_on:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
       - SPARK_WORKER_MEMORY=1G
-      - SPARK_DRIVER_MEMORY=128m
-      - SPARK_EXECUTOR_MEMORY=256m
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
       - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker-a
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
@@ -31,15 +33,17 @@ services:
     image: cluster-apache-spark:3.0.2
     ports:
       - "9092:8080"
+      - "7001:7000"
     depends_on:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
       - SPARK_WORKER_MEMORY=1G
-      - SPARK_DRIVER_MEMORY=128m
-      - SPARK_EXECUTOR_MEMORY=256m
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
       - SPARK_WORKLOAD=worker
+      - SPARK_LOCAL_IP=spark-worker-b
     volumes:
         - ./apps:/opt/spark-apps
         - ./data:/opt/spark-data

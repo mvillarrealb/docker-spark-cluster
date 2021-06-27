@@ -86,63 +86,72 @@ data|/opt/spark-data| Used to make available your app's data on all workers & ma
 
 This is basically a dummy DFS created from docker Volumes...(maybe not...)
 
-# Run a sample application
-
-Now let`s make a **wild spark submit** to validate the distributed nature of our new toy following these steps:
-
-## Run the example
+# Run Sample applications
 
 
+## NY Bus Stops Data [Pyspark]
 
+This programs just loads archived data from [MTA Bus Time](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html) and apply basic filters using spark sql, the result are persisted into a postgresql table.
 
-## Run the example with the spark-submit 
+The loaded table will contain the following structure:
 
-```bash
-#Creating some variables to make the docker run command more readable
-#App jar environment used by the spark-submit image
-SPARK_APPLICATION_JAR_LOCATION="/opt/spark-apps/crimes-app.jar"
-#App main class environment used by the spark-submit image
-SPARK_APPLICATION_MAIN_CLASS="org.mvb.applications.CrimesApp"
-#Extra submit args used by the spark-submit image
-SPARK_SUBMIT_ARGS="--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf'"
+latitude|longitude|time_received|vehicle_id|distance_along_trip|inferred_direction_id|inferred_phase|inferred_route_id|inferred_trip_id|next_scheduled_stop_distance|next_scheduled_stop_id|report_hour|report_date
+---|---|---|---|---|---|---|---|---|---|---|---|---
+40.668602|-73.986697|2014-08-01 04:00:01|469|4135.34710710144|1|IN_PROGRESS|MTA NYCT_B63|MTA NYCT_JG_C4-Weekday-141500_B63_123|2.63183804205619|MTA_305423|2014-08-01 04:00:00|2014-08-01
 
-#We have to use the same network as the spark cluster(internally the image resolves spark master as spark://spark-master:7077)
-docker run --network docker-spark-cluster_spark-network \
--v /mnt/spark-apps:/opt/spark-apps \
---env SPARK_APPLICATION_JAR_LOCATION=$SPARK_APPLICATION_JAR_LOCATION \
---env SPARK_APPLICATION_MAIN_CLASS=$SPARK_APPLICATION_MAIN_CLASS \
-spark-submit:2.3.1
+To submit the app connect to one of the workers or the master and execute:
 
+```sh
+/opt/spark/bin/spark-submit --master spark://spark-master:7077 \
+--jars /opt/spark-apps/postgresql-42.2.22.jar \
+--driver-memory 1G \
+--executor-memory 1G \
+/opt/spark-apps/main.py
 ```
 
-After running this you will see an output pretty much like this:
+![alt text](./articles/images/pyspark-demo.png "Spark UI with pyspark program running")
 
-```bash
-Running Spark using the REST application submission protocol.
-2018-09-23 15:17:52 INFO  RestSubmissionClient:54 - Submitting a request to launch an application in spark://spark-master:6066.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Submission successfully created as driver-20180923151753-0000. Polling submission state...
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Submitting a request for the status of submission driver-20180923151753-0000 in spark://spark-master:6066.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - State of driver driver-20180923151753-0000 is now RUNNING.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Driver is running on worker worker-20180923151711-10.5.0.4-45381 at 10.5.0.4:45381.
-2018-09-23 15:17:53 INFO  RestSubmissionClient:54 - Server responded with CreateSubmissionResponse:
-{
-  "action" : "CreateSubmissionResponse",
-  "message" : "Driver successfully submitted as driver-20180923151753-0000",
-  "serverSparkVersion" : "2.3.1",
-  "submissionId" : "driver-20180923151753-0000",
-  "success" : true
-}
+## MTA Bus Analytics[Scala]
+
+This program takes the archived data from [MTA Bus Time](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html) and make some aggregations on it, the calculated results are persisted on postgresql tables.
+
+Each persisted table correspond to a particullar aggregation:
+
+Table|Aggregation
+---|---
+day_summary|A summary of vehicles reporting, stops visited, average speed and distance traveled(all vehicles)
+speed_excesses|Speed excesses calculated in a 5 minute window
+average_speed|Average speed by vehicle
+distance_traveled|Total Distance traveled by vehicle
+
+
+To submit the app connect to one of the workers or the master and execute:
+
+```sh
+/opt/spark/bin/spark-submit --deploy-mode cluster \
+--master spark://spark-master:7077 \
+--total-executor-cores 1 \
+--class mta.processing.MTAStatisticsApp \
+--driver-memory 1G \
+--executor-memory 1G \
+--jars /opt/spark-apps/postgresql-42.2.22.jar \
+--conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' \
+--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' \
+/opt/spark-apps/mta-processing.jar
 ```
 
-# Summary (What have I done :O?)
+You will notice on the spark-ui a driver program and executor program running(In scala we can use deploy-mode cluster)
 
-* We compiled the necessary docker images to run spark master and worker containers.
+![alt text](./articles/images/stats-app.png "Spark UI with scala program running")
 
-* We created a spark standalone cluster using 3 worker nodes and 1 master node using docker && docker-compose.
 
-* Copied the resources necessary to run a sample application.
+# Summary
 
-* Submitted an application to the cluster using a **spark-submit** docker image.
+* We compiled the necessary docker image to run spark master and worker containers.
+
+* We created a spark standalone cluster using 2 worker nodes and 1 master node using docker && docker-compose.
+
+* Copied the resources necessary to run demo applications.
 
 * We ran a distributed application at home(just need enough cpu cores and RAM to do so).
 
@@ -150,15 +159,13 @@ Running Spark using the REST application submission protocol.
 
 * This is intended to be used for test purposes, basically a way of running distributed spark apps on your laptop or desktop.
 
-* Right now I don't have enough resources to make a Yarn, Mesos or Kubernetes based cluster :(.
-
 * This will be useful to use CI/CD pipelines for your spark apps(A really difficult and hot topic)
 
 # Steps to connect and use a pyspark shell interactively
 
 * Follow the steps to run the docker-compose file. You can scale this down if needed to 1 worker. 
 
-```bash
+```sh
 docker-compose up --scale spark-worker=1
 docker exec -it docker-spark-cluster_spark-worker_1 bash
 apt update
@@ -167,29 +174,8 @@ pip3 install pyspark
 pyspark
 ```
 
-/opt/spark/bin/spark-submit --jars /opt/spark-apps/postgresql-42.2.22.jar --master spark://spark-master:7077 --total-executor-cores 1 /opt/spark-apps/main.py
+# What's left to do?
 
+* Right now to run applications in deploy-mode cluster is necessary to specify arbitrary driver port.
 
-#!/bin/bash
-SPARK_APPLICATION_JAR_LOCATION="/opt/spark-apps/crimes-app.jar"
-SPARK_APPLICATION_MAIN_CLASS="org.mvb.applications.CrimesApp"
-SPARK_SUBMIT_ARGS="--conf spark.executor.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf'"
-
-docker run --network docker-spark-cluster_spark-network -v /mnt/spark-apps:/opt/spark-apps --env SPARK_APPLICATION_JAR_LOCATION=$SPARK_APPLICATION_JAR_LOCATION --env SPARK_APPLICATION_MAIN_CLASS=$SPARK_APPLICATION_MAIN_CLASS spark-submit:2.3.1
-
-
-./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --driver-memory 256m --deploy-mode cluster --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
-
-
-./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:6066 --deploy-mode cluster --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
-
-
-./spark-submit --class org.mvb.applications.CrimesApp --master spark://spark-master:7077 --conf spark.executor.memory='256m' --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/dev/config.conf' /opt/spark-apps/crimes-app.jar
- 
-
- docker build -t cluster-apache-spark:3.0.2 .
-
-
-
-
-/opt/spark/bin/spark-submit --class mta.processing.MTAStatisticsApp --master spark://spark-master:7077 --deploy-mode cluster --jars /opt/spark-apps/postgresql-42.2.22.jar --conf spark.driver.extraJavaOptions='-Dconfig-path=/opt/spark-apps/mta.conf' /opt/spark-apps/mta-processing.jar
+* The spark submit entry in the start-spark.sh is unimplemented, the submit used in the demos can be triggered from any worker
