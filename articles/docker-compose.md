@@ -126,6 +126,7 @@ version: "3.3"
 services:
   spark-master:
     image: cluster-apache-spark:3.2.1
+    container_name: spark-master
     ports:
       - "9090:8080"
       - "7077:7077"
@@ -135,8 +136,9 @@ services:
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
-  spark-worker-a:
+  spark-worker-1:
     image: cluster-apache-spark:3.2.1
+    container_name: spark-worker-1
     ports:
       - "9091:8080"
       - "7000:7000"
@@ -153,8 +155,9 @@ services:
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
-  spark-worker-b:
+  spark-worker-2:
     image: cluster-apache-spark:3.2.1
+    container_name: spark-worker-2
     ports:
       - "9092:8080"
       - "7001:7000"
@@ -173,6 +176,7 @@ services:
         - ./data:/opt/spark-data
   demo-database:
     image: postgres:11.7-alpine
+    container_name: demo-database
     ports: 
       - "5432:5432"
     environment: 
