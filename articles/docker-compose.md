@@ -6,8 +6,8 @@ But today we are going to revisit this old fella with some updates and hopefully
 
 # Requirements
 
-* Docker(I am using version 20.10.7)
-* docker-compose(I am using version 1.21.2)
+* Docker(I am using version 20.10.13)
+* docker-compose(I am using version 2.3.3)
 * [This repo ;)](https://github.com/mvillarrealb/docker-spark-cluster)
 
 # Project Structure
@@ -33,7 +33,7 @@ Here's the dockerfile used to define our apache-spark image:
 ```dockerfile
 
 # builder step used to download and configure spark environment
-FROM openjdk:11.0.11-jre-slim-buster as builder
+FROM openjdk:11.0.14-jre-slim-buster as builder
 
 # Add Dependencies for PySpark
 RUN apt-get update && apt-get install -y curl vim wget software-properties-common ssh net-tools ca-certificates python3 python3-pip python3-numpy python3-matplotlib python3-scipy python3-pandas python3-simpy
@@ -42,7 +42,7 @@ RUN update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 
 
 # Fix the value of PYTHONHASHSEED
 # Note: this is needed when you use Python 3.3 or greater
-ENV SPARK_VERSION=3.0.2 \
+ENV SPARK_VERSION=3.2.1 \
 HADOOP_VERSION=3.2 \
 SPARK_HOME=/opt/spark \
 PYTHONHASHSEED=1
@@ -111,7 +111,7 @@ fi
 To build the image just run:
 
 ```sh
-docker build -t cluster-apache-spark:3.0.2 .
+docker build -t cluster-apache-spark:3.2.1 .
 ```
 
 After some time the image will be successfully created, it will take some time depending on how fast the dependencies and the spark tarball are dowloaded (fortunatelly these steps get cached as a layer thanks to the multistage setup).
@@ -122,10 +122,11 @@ After some time the image will be successfully created, it will take some time d
 Now that we have our apache-spark image is time to create a cluster in docker-compose
 
 ```yaml
-version: "3.3"
+version: "3.9"
 services:
   spark-master:
-    image: cluster-apache-spark:3.0.2
+    image: cluster-apache-spark:3.2.1
+    container_name: spark-master
     ports:
       - "9090:8080"
       - "7077:7077"
@@ -135,8 +136,9 @@ services:
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
-  spark-worker-a:
-    image: cluster-apache-spark:3.0.2
+  spark-worker-1:
+    image: cluster-apache-spark:3.2.1
+    container_name: spark-worker-1
     ports:
       - "9091:8080"
       - "7000:7000"
@@ -153,8 +155,9 @@ services:
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
-  spark-worker-b:
-    image: cluster-apache-spark:3.0.2
+  spark-worker-2:
+    image: cluster-apache-spark:3.2.1
+    container_name: spark-worker-2
     ports:
       - "9092:8080"
       - "7001:7000"
@@ -173,6 +176,7 @@ services:
         - ./data:/opt/spark-data
   demo-database:
     image: postgres:11.7-alpine
+    container_name: demo-database
     ports: 
       - "5432:5432"
     environment: 
