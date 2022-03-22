@@ -6,8 +6,8 @@ But today we are going to revisit this old fella with some updates and hopefully
 
 # Requirements
 
-* Docker(I am using version 20.10.7)
-* docker-compose(I am using version 1.21.2)
+* Docker(I am using version 20.10.13)
+* docker-compose(I am using version 2.3.3)
 * [This repo ;)](https://github.com/mvillarrealb/docker-spark-cluster)
 
 # Project Structure
