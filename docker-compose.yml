@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.9"
 services:
   spark-master:
     image: cluster-apache-spark:3.2.1

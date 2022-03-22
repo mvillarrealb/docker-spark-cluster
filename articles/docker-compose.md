@@ -122,7 +122,7 @@ After some time the image will be successfully created, it will take some time d
 Now that we have our apache-spark image is time to create a cluster in docker-compose
 
 ```yaml
-version: "3.3"
+version: "3.9"
 services:
   spark-master:
     image: cluster-apache-spark:3.2.1
