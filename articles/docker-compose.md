@@ -42,7 +42,7 @@ RUN update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 
 
 # Fix the value of PYTHONHASHSEED
 # Note: this is needed when you use Python 3.3 or greater
-ENV SPARK_VERSION=3.0.2 \
+ENV SPARK_VERSION=3.2.1 \
 HADOOP_VERSION=3.2 \
 SPARK_HOME=/opt/spark \
 PYTHONHASHSEED=1
@@ -111,7 +111,7 @@ fi
 To build the image just run:
 
 ```sh
-docker build -t cluster-apache-spark:3.0.2 .
+docker build -t cluster-apache-spark:3.2.1 .
 ```
 
 After some time the image will be successfully created, it will take some time depending on how fast the dependencies and the spark tarball are dowloaded (fortunatelly these steps get cached as a layer thanks to the multistage setup).
@@ -125,7 +125,7 @@ Now that we have our apache-spark image is time to create a cluster in docker-co
 version: "3.3"
 services:
   spark-master:
-    image: cluster-apache-spark:3.0.2
+    image: cluster-apache-spark:3.2.1
     ports:
       - "9090:8080"
       - "7077:7077"
@@ -136,7 +136,7 @@ services:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
   spark-worker-a:
-    image: cluster-apache-spark:3.0.2
+    image: cluster-apache-spark:3.2.1
     ports:
       - "9091:8080"
       - "7000:7000"
@@ -154,7 +154,7 @@ services:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
   spark-worker-b:
-    image: cluster-apache-spark:3.0.2
+    image: cluster-apache-spark:3.2.1
     ports:
       - "9092:8080"
       - "7001:7000"

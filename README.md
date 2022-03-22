@@ -27,7 +27,7 @@ The following steps will make you run your spark cluster's containers.
 
 
 ```sh
-docker build -t cluster-apache-spark:3.0.2 .
+docker build -t cluster-apache-spark:3.2.1 .
 ```
 
 ## Run the docker-compose
