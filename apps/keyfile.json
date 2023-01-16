@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "poetic-standard-368101",
+  "private_key_id": "e0f9af8ae62e8497c417b249e0d0ef93dcf99a15",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDh++FTpTEnWVwi\nZZ8HQjJfQjBku+m3nPaOCqaRSkI2+XYsxgJxezEXTgO9UKDgohJ0AzscF8+99VLp\nnAYmhzGxM4qwzFqEKHdC/E1Ujlf/gAuMQiJZmz5Mzn4BvIStncYEjYPSQmjEJJbD\n9tgtRY1EKhljHa9BZi09xyCWF0BpJpK8aJ3u5kPhvDYZv+FGdWg83ZRKcyPnELvT\nxl5p5Aw02aWnI2GNsGJ6t2R3hoA3t5/VoiUUU31GJmQSBJiJZdkMwuKXRzEU4h9J\n/CSp/4bf5P5+hrJENznLfO9qAkAJdKt6LBun+J3dXup606Elb82yEwqQnfY6blKu\n7iL1f1q5AgMBAAECggEAFiMqi5sfGY+zatsxnPBrJtHBE90kpAwISxnX/1ua6O+/\nF9u92YgL4xCNZTpEyDyYOi0m2TWr8BvcJ25VW+jagVVfPLqIE3IzXKiCmsnm7OyK\nNQ81djmy/KstxNXG2YsfHssOIsbGpJBBBKllu+mYURkeq4r45BsyS176Xjmg4avq\nifavubBT1oelqpoAOWEecIc7PwpEDiGdG28tS3cn1lpR6CYNyLnAxI3A0xJ1gPpK\nIFqP5a0dLFLGo+jBUE8PBvWd/xtSb8yf2/v+6L0uFJrkFcWxvUywdZiZb9sfHy0r\nm7qjklSQwIVkLjTZE+eTORSWUEXsB3VxxALX9Lw2AQKBgQD1J1i3ku2rpTDvOUQk\nFhtL5OlBEUhRlXsRpRvkdEXru6MhPlG2DoNpTwQFr6jIZ+nfdn1vlc5hMtWn1paH\nTQ2ljjmRbvr7UXP6Of/onjGX0w3sbHqKtABkp1Amhw9U/wL/YLuMUnR5H2seMTCl\nebBfzjZq/ZBwHZLUeb+8Nv/NyQKBgQDr+2nKl021Jt9TjB7L40JaKhxedRReL4tT\n2aPoY38NRe1LsB4nUZOh/annmaOi8IKAoAh3mR3MbUa6Xt0IGglvEUCL0zsU8Oz2\nTeCvViDr8s15FQHOcSyN6Zh8oGobRzPViK6iRq1U3j7lL5jNtFW26miwm1ZnbvEi\n6jD0ZffdcQKBgBSlFpyG/ArbY26R5QIg9nWCtn3rRarRKscGn32yqPy8FXXEOL9b\nI4fnxo/wBgeycIiIAvI1rGaVEFcNBCoqu/54JrLvpKUra9fjsIBXahe+B0skq4Eo\nvWu8h0xnTUw8GXWGIOUlQHe+xJeLTuxwfgDjbcO+zL4UT3wjMJlaDFq5AoGARqHZ\n6GmhOLeJ4Nfv39cF5Tb1htBEaGySp2ZdSRF+1do4TI9KdzpTlgj28ftqnzqd1SIR\nZrrN0IJkySPbxLEGYdgoGbH/3SS/yHlG5zRAZl8mYTeIcuItE8z3d1YMbF3DhgaD\nPs8o0l4zNSYp9mgjv7wp2bKlChCK3Ih8XqqmpgECgYAFCSMv2sp+XKpKkDezjlH/\njmFJGd5dpmUhOxk+/0nhcggClfh09wvmRMverVubU6bppQYpZaUVm1z5Ui27rhHq\nYwpcrbhv1gzBwTUak8Wj5LODY0cXztmn1h4jUspN7AocFIGGh0r8BsnTBQwfoX6j\nLHC60QgZjrh+ljj37GhCRQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "gcp-airflow@poetic-standard-368101.iam.gserviceaccount.com",
+  "client_id": "105605340072195595828",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gcp-airflow%40poetic-standard-368101.iam.gserviceaccount.com"
+}
