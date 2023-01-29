@@ -179,3 +179,6 @@ pyspark
 * Right now to run applications in deploy-mode cluster is necessary to specify arbitrary driver port.
 
 * The spark submit entry in the start-spark.sh is unimplemented, the submit used in the demos can be triggered from any worker
+
+# Note
+trong watermark, thì cột dùng làm watermark phải dùng group by trên nó
