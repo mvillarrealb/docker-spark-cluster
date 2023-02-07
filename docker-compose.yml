@@ -5,6 +5,8 @@ services:
     ports:
       - "9090:8080"
       - "7077:7077"
+      - "22221:22"
+      - "10015:10015"
     volumes:
        - ./apps:/opt/spark-apps
        - ./data:/opt/spark-data
@@ -16,6 +18,7 @@ services:
     ports:
       - "9091:8080"
       - "7000:7000"
+      - "22222:22"
     depends_on:
       - spark-master
     environment:
@@ -34,6 +37,7 @@ services:
     ports:
       - "9092:8080"
       - "7001:7000"
+      - "22223:22"
     depends_on:
       - spark-master
     environment:
