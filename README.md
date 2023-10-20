@@ -27,7 +27,7 @@ The following steps will make you run your spark cluster's containers.
 
 
 ```sh
-docker build -t cluster-apache-spark:3.0.2 .
+docker-compose build
 ```
 
 ## Run the docker-compose
@@ -35,7 +35,7 @@ docker build -t cluster-apache-spark:3.0.2 .
 The final step to create your test cluster will be to run the compose file:
 
 ```sh
-docker-compose up -d
+docker-compose up (-d se desejar executar no modo deamon)
 ```
 
 ## Validate your cluster
