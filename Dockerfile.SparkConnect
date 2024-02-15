@@ -1,5 +1,13 @@
 FROM apache/spark:3.4.2-python3
 
+USER root
+
+RUN apt-get update; \
+    apt-get install -y rsync openssh-client; \
+    rm -rf /var/lib/apt/lists/*;
+
+USER spark
+
 WORKDIR /opt/spark
 
 ENV SPARK_MASTER_PORT=7077 \
@@ -20,6 +28,6 @@ touch $SPARK_WORKER_LOG && \
 ln -sf /dev/stdout $SPARK_MASTER_LOG && \
 ln -sf /dev/stdout $SPARK_WORKER_LOG
 
-COPY start-spark.sh /
+COPY start-spark-connect.sh /
 
-CMD ["/bin/bash", "/start-spark.sh"]
+CMD ["/bin/bash", "/start-spark-connect.sh"]

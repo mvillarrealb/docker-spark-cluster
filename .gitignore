@@ -1,2 +1,8 @@
 # Ignore data files
 *.csv
+
+.pyspark_apps_venv/
+
+.venv/
+
+*_venv.tar.gz

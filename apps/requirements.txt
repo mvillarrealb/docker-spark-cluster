@@ -1,0 +1,9 @@
+py4j
+#pandas
+pyarrow
+numpy
+venv-pack
+#grpcio
+grpcio-status
+googleapis-common-protos
+pyspark[sql]==3.4.2
