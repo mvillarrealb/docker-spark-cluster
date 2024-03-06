@@ -1,4 +1,4 @@
-FROM apache/spark:3.4.2-python3
+FROM apache/spark:3.5.1-python3
 
 WORKDIR /opt/spark
 
